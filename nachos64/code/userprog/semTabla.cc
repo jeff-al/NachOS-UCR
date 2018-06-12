@@ -17,7 +17,7 @@ int SemTabla::Create(long val){ //direccion del semaforo
 };
 
 
-int SemTabla::Close(int id){
+int SemTabla::Close(int id){/*
   int ret = 1;
   if(isCreate(id)){
     semaforosMap->Clear(id);
@@ -26,7 +26,7 @@ int SemTabla::Close(int id){
   else{
     ret = -1;
   }
-  return ret;
+  return ret;*/
 };
 
 bool SemTabla::isCreate(int id){

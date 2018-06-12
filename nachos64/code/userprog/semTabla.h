@@ -2,7 +2,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "synch.h"
 
 #define maxSem 128
 
@@ -23,7 +22,6 @@ class SemTabla {
   private:
     long semaforosAbiertos[maxSem];		// A vector with user opened files
     BitMap * semaforosMap;	// A bitmap to control our vector
-    Semaphore * semaforo;
     int usage;			// How many threads are using this table
 
 };

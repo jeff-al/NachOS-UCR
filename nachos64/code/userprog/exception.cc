@@ -33,6 +33,8 @@ using namespace std;
 
 #define KEY 0xB60380
 
+SemTabla * SMT = new SemTabla();
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -254,8 +256,9 @@ void Nachos_Fork(){
   	// Pass the user routine address, now in register 4, as a parameter
   	// Note: in 64 bits register 4 need to be casted to (void *)
   	newT->Fork( NachosForkThread, (void *)machine->ReadRegister( 4 ));
+    //currentThread->Yield();
   	returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
-
+    cout << "XAVI" << endl;
   	DEBUG( 'u', "Exiting Fork System call\n" );
 }
 
@@ -263,7 +266,7 @@ void Nachos_SemCreate(){
   int valorInicial = machine->ReadRegister( 4 );
   Semaphore * sem = new Semaphore("Semaforo", valorInicial);
   long id = (long)sem;
-  int idFake = currentThread->SMT->Create(id);
+  int idFake = SMT->Create(id);
   machine->WriteRegister(2, idFake);
   returnFromSystemCall();
 }
@@ -271,47 +274,62 @@ void Nachos_SemCreate(){
 void Nachos_SemDestroy(){
   int id = machine->ReadRegister( 4 );
 //  long idReal = currentThread->SMT->getSemaphore(id);
-  int ret = currentThread->SMT->Close(id);
+  int ret = SMT->Close(id);
   machine->WriteRegister(2, ret);
     returnFromSystemCall();
 }
 
 void Nachos_SemSignal(){
     int id = machine->ReadRegister( 4 );
-    long idReal = currentThread->SMT->getSemaphore(id);
+    cout << "signal id :" << id << endl;
+    long idReal = SMT->getSemaphore(id);
     if(idReal == -1){
       machine->WriteRegister(2, -1);
+      cout << "no hago signal en sem:" << idReal << endl;
     }else{
-      currentThread->SMT->semaforo = (Semaphore *) idReal;
-      currentThread->SMT->semaforo->V();
+      Semaphore * sem = (Semaphore *) idReal;
+      cout << "hago signal en sem:" << idReal << endl;
+      sem->V();
       machine->WriteRegister(2, 1);
     }
     returnFromSystemCall();
 }
 void Nachos_SemWait(){
     int id = machine->ReadRegister( 4 );
-    long idReal = currentThread->SMT->getSemaphore(id);
+    cout << "wait id :" << id << endl;
+    long idReal = SMT->getSemaphore(id);
     if(idReal == -1){
       machine->WriteRegister(2, -1);
     }else{
-      currentThread->SMT->semaforo = (Semaphore *) idReal;
-      currentThread->SMT->semaforo->P();
+      Semaphore * sem = (Semaphore *) idReal;
+      cout << "hago wait en sem:" << idReal << endl;
+      sem->P();
       machine->WriteRegister(2, 1);
     }
     returnFromSystemCall();
 }
 
 void Nachos_Exit(){
-  if(currentThread->getName() == "child to execute Fork code"){
-    cout << "entra hijo" << endl;
-    //Thread * next = scheduler->FindNextToRun();
-    //if(next == NULL){cout << "Nuulo" << endl;}
-  //  scheduler->Run(next);
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    Thread * next = scheduler->FindNextToRun();
+    if(next == NULL){
+      currentThread->Finish();
+    }else{
+      scheduler->Run(next);
+    }
+    interrupt->SetLevel(oldLevel);
+}
 
-  }else{
-    cout << "entra padre" << endl;
-    currentThread->Finish();
-  }
+void Nachos_Yield(){
+  currentThread->Yield();
+  returnFromSystemCall();
+}
+
+void Nachos_Exec(){
+  OpenFile *executable = machine->ReadRegister( 4 );
+  AddrSpace *space = new AddrSpace(executable);
+
+  //machine->WriteRegister(2, 1);
   returnFromSystemCall();
 }
 
@@ -338,37 +356,45 @@ ExceptionHandler(ExceptionType which)
                Nachos_Write();             // System call # 7
                break;
           case SC_Close:
-                   cout << "Close " << endl;
-                   Nachos_Close();             // System call # 8
-                   break;
+               cout << "Close " << endl;
+               Nachos_Close();             // System call # 8
+               break;
           case SC_Read:     // System call # 6
-                   cout << "Read " << endl;
-                   Nachos_Read();
-                   break;
+               cout << "Read " << endl;
+               Nachos_Read();
+               break;
           case SC_Fork:		                       // System call # 9
-                  cout << "Fork " << endl;
-                  Nachos_Fork();
-                  break;
+              cout << "Fork " << endl;
+              Nachos_Fork();
+              break;
           case SC_Exit:                           // System call # 1
-                   cout << "Exit " << endl;
-                   Nachos_Exit();
-                   break;
+              cout << "Exit " << endl;
+              Nachos_Exit();
+              break;
           case SC_SemCreate:                           // System call # 11
-                  cout << "Create " << endl;
-                  Nachos_SemCreate();
-                  break;
+              cout << "Create " << endl;
+              Nachos_SemCreate();
+              break;
           case SC_SemDestroy:                           // System call # 12
-                  cout << "Destroy " << endl;
-                  Nachos_SemDestroy();
-                  break;
+              cout << "Destroy " << endl;
+              Nachos_SemDestroy();
+              break;
           case SC_SemSignal:                           // System call # 13
-                  cout << "Signal " << endl;
-                  Nachos_SemSignal();
-                  break;
+              cout << "Signal " << endl;
+              Nachos_SemSignal();
+              break;
           case SC_SemWait:                           // System call # 14
-                  cout << "Wait " << endl;
-                  Nachos_SemWait();
-                  break;
+              cout << "Wait " << endl;
+              Nachos_SemWait();
+              break;
+          case SC_Yield:                           // System call # 14
+              cout << "Yield " << endl;
+              Nachos_Yield();
+              break;
+          case SC_Exec:                           // System call # 14
+              cout << "Exec " << endl;
+              Nachos_Exec();
+              break;
 /*           default:
               cout << "defalut " << endl;
               printf("Unexpected syscall exception %d\n", type );

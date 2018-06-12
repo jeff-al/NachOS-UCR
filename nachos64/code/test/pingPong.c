@@ -19,14 +19,14 @@ void SimpleThread(int num)
 
     if (num == 1) {
 	for (num = 0; num < 5; num++) {
-		Write("Hola 1\n", 7, 1);
+		Write("Hola 1", 6, 1);
 		Yield();
 	}
     }
 
     else {
 	for (num = 0; num < 5; num++) {
-		Write("Hola 2\n", 7, 1);
+		Write("Hola 2", 6, 1);
 		Yield();
 	}
     }

@@ -80,7 +80,7 @@ class Thread {
     HostMemoryAddress machineState[MachineStateSize];	// all registers except for stackTop
   public:
     NachosOpenFilesTable * NOP;
-    SemTabla * SMT;
+    //SemTabla * SMT;
 
     Thread(const char* debugName);	// initialize a Thread
     ~Thread(); 				// deallocate a Thread
