@@ -261,29 +261,58 @@ void Nachos_Fork(){
 
 void Nachos_SemCreate(){
   int valorInicial = machine->ReadRegister( 4 );
-  int id = 7;
   Semaphore * sem = new Semaphore("Semaforo", valorInicial);
-  machine->WriteRegister(2, id);
+  long id = (long)sem;
+  int idFake = currentThread->SMT->Create(id);
+  machine->WriteRegister(2, idFake);
   returnFromSystemCall();
 }
 
 void Nachos_SemDestroy(){
   int id = machine->ReadRegister( 4 );
-  machine->WriteRegister(2, id);
+//  long idReal = currentThread->SMT->getSemaphore(id);
+  int ret = currentThread->SMT->Close(id);
+  machine->WriteRegister(2, ret);
     returnFromSystemCall();
 }
 
 void Nachos_SemSignal(){
-      int id = machine->ReadRegister( 4 );
-int x = 0;
-      machine->WriteRegister(2, x);
+    int id = machine->ReadRegister( 4 );
+    long idReal = currentThread->SMT->getSemaphore(id);
+    if(idReal == -1){
+      machine->WriteRegister(2, -1);
+    }else{
+      currentThread->SMT->semaforo = (Semaphore *) idReal;
+      currentThread->SMT->semaforo->V();
+      machine->WriteRegister(2, 1);
+    }
     returnFromSystemCall();
 }
 void Nachos_SemWait(){
-  int id = machine->ReadRegister( 4 );
-  int x = 0;
-      machine->WriteRegister(2, x);
+    int id = machine->ReadRegister( 4 );
+    long idReal = currentThread->SMT->getSemaphore(id);
+    if(idReal == -1){
+      machine->WriteRegister(2, -1);
+    }else{
+      currentThread->SMT->semaforo = (Semaphore *) idReal;
+      currentThread->SMT->semaforo->P();
+      machine->WriteRegister(2, 1);
+    }
     returnFromSystemCall();
+}
+
+void Nachos_Exit(){
+  if(currentThread->getName() == "child to execute Fork code"){
+    cout << "entra hijo" << endl;
+    //Thread * next = scheduler->FindNextToRun();
+    //if(next == NULL){cout << "Nuulo" << endl;}
+  //  scheduler->Run(next);
+
+  }else{
+    cout << "entra padre" << endl;
+    currentThread->Finish();
+  }
+  returnFromSystemCall();
 }
 
 void
@@ -322,7 +351,7 @@ ExceptionHandler(ExceptionType which)
                   break;
           case SC_Exit:                           // System call # 1
                    cout << "Exit " << endl;
-                   currentThread->Finish();
+                   Nachos_Exit();
                    break;
           case SC_SemCreate:                           // System call # 11
                   cout << "Create " << endl;

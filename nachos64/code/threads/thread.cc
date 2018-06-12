@@ -42,6 +42,7 @@ Thread::Thread(const char* threadName)
     space = NULL;
 #endif
      NOP = new NachosOpenFilesTable();
+     SMT = new SemTabla();
 }
 
 //----------------------------------------------------------------------
