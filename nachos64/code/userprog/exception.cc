@@ -256,9 +256,8 @@ void Nachos_Fork(){
   	// Pass the user routine address, now in register 4, as a parameter
   	// Note: in 64 bits register 4 need to be casted to (void *)
   	newT->Fork( NachosForkThread, (void *)machine->ReadRegister( 4 ));
-    //currentThread->Yield();
+    currentThread->Yield();
   	returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
-    cout << "XAVI" << endl;
   	DEBUG( 'u', "Exiting Fork System call\n" );
 }
 
@@ -326,8 +325,37 @@ void Nachos_Yield(){
 }
 
 void Nachos_Exec(){
-  OpenFile *executable = machine->ReadRegister( 4 );
+  char name[128];
+  int k = 1;
+  int i = 0;
+  int reg4 = machine->ReadRegister(4);
+  cout << "reg4: " << reg4 << endl;
+  do{
+    machine->ReadMem(reg4,1,&k);
+    cout << "K: " << k << endl;
+    reg4++;
+    name[i] = k;
+    i++;
+  }while(k != 0);
+  cout << "Nombre del archivo: "<< name << endl;
+
+
+
+
+
+
+
+  OpenFile *executable = fileSystem->Open(name);
   AddrSpace *space = new AddrSpace(executable);
+  Thread * newT = new Thread( "child to execute Fork code" );
+  newT->Fork( NachosForkThread, (void *)executable);
+  machine->WriteRegister(2, (long)space);
+  returnFromSystemCall();
+}
+
+void Nachos_Join(){
+  //OpenFile *executable = machine->ReadRegister( 4 );
+  //AddrSpace *space = new AddrSpace(executable);
 
   //machine->WriteRegister(2, 1);
   returnFromSystemCall();
@@ -341,6 +369,7 @@ ExceptionHandler(ExceptionType which)
      case SyscallException:
         switch ( type ) {
            case SC_Halt:
+               cout << "Halt " << endl;
                Nachos_Halt();             // System call # 0
                break;
            case SC_Create:
@@ -395,11 +424,15 @@ ExceptionHandler(ExceptionType which)
               cout << "Exec " << endl;
               Nachos_Exec();
               break;
-/*           default:
+          case SC_Join:                           // System call # 14
+              cout << "Join " << endl;
+              Nachos_Join();
+              break;
+           default:
               cout << "defalut " << endl;
               printf("Unexpected syscall exception %d\n", type );
               ASSERT(false);
-              break;*/
+              break;
      }
      break;
      default:

@@ -11,15 +11,15 @@
  */
 
 #include "syscall.h"
-/*
+
 int
 main()
 {
      char* palabra = "";
     //Halt();
-    Create("aguacaton.txt");
-    OpenFileId i = Open("aguacaton.txt");
-    Write("aguacate", 8, i);
+     Create("aguacaton.txt");
+     OpenFileId i = Open("aguacaton.txt");
+     Write("aguacate el carro es rojo vino", 30, i);
      Close(i);
      Read(palabra, 8, i);
      Close(i);
@@ -28,8 +28,8 @@ main()
      Write(palabra, 8, i2);
      Close(i2);
     /* not reached */
-//}
-
+}
+/*
 int id;
 void hijo(int dummy){
 	Write( "hijo", 5, 1 );
@@ -46,5 +46,5 @@ int main(){
 	SemDestroy(id);
 	Exit(0);
 }
-
+*/
 

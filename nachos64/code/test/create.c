@@ -1,9 +1,9 @@
 int main(){
 	int fd;
 char * buf;// = new int[6];
-	Create("archivo.nuevo");
-	fd = Open("archivo.nuevo");
-	Write("prueba", 6, fd);
+	Create("archivo.txt");
+	fd = Open("archivo.txt");
+	Write("pruepa", 6, fd);
 	Close(fd);
 	Exec("../test/brillo");	
 	Exec("brillo1");
