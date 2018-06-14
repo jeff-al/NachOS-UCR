@@ -83,7 +83,7 @@ void Nachos_Create(){    // System call 4
         name[it++] = c;
         direc++;
     }while(c != 0);
-	  int id = creat((const char*)name, S_IRWXU);
+	  int id = creat((const char*)name, O_CREAT | S_IRWXU);
     close(id);
 
     returnFromSystemCall();
@@ -151,7 +151,7 @@ void Nachos_Read(){ //System call 6
 void Nachos_Write() {    // System call 7
 //    Semaphore* Console = new Semaphore((char*)'S', 1);
     int size = machine->ReadRegister( 5 );	// Read size to write
-    char *buffer = new char(size+1);
+    char buffer[size+1] = {0};
 
     // buffer = Read data from address given by user;
     OpenFileId id = machine->ReadRegister( 6 );	// Read file descriptor
@@ -161,7 +161,6 @@ void Nachos_Write() {    // System call 7
     int c;
     int direc;
     int it;
-    buffer[ size ] = 0;
     c = 1;
     direc = machine->ReadRegister(4);
     it = 0;
@@ -170,6 +169,7 @@ void Nachos_Write() {    // System call 7
       buffer[it++] = c;
       direc++;
     }while(c != 0);
+    buffer[ it ] = 0;
     switch (id) {
         case  ConsoleInput:	// User could not write to standard input
             machine->WriteRegister( 2, -1 );
@@ -324,32 +324,32 @@ void Nachos_Yield(){
   returnFromSystemCall();
 }
 
+void NachosExecThread(void *p) { // for 64 bits version
+    char name[128];
+    int k = 1;
+    int i = 0;
+    int reg4 = (long)p;
+    do{
+      machine->ReadMem(reg4,1,&k);
+      reg4++;
+      name[i] = k;
+      i++;
+    }while(k != 0);
+    name[i] = 0;
+    OpenFile *executable = fileSystem->Open(name);
+    AddrSpace *space = new AddrSpace(executable);
+    delete executable;
+    space->InitRegisters();             // set the initial register values
+    space->RestoreState();              // load page table register
+    machine->Run();                     // jump to the user progam
+    //ASSERT(false);
+
+}
+
 void Nachos_Exec(){
-  char name[128];
-  int k = 1;
-  int i = 0;
-  int reg4 = machine->ReadRegister(4);
-  cout << "reg4: " << reg4 << endl;
-  do{
-    machine->ReadMem(reg4,1,&k);
-    cout << "K: " << k << endl;
-    reg4++;
-    name[i] = k;
-    i++;
-  }while(k != 0);
-  cout << "Nombre del archivo: "<< name << endl;
-
-
-
-
-
-
-
-  OpenFile *executable = fileSystem->Open(name);
-  AddrSpace *space = new AddrSpace(executable);
-  Thread * newT = new Thread( "child to execute Fork code" );
-  newT->Fork( NachosForkThread, (void *)executable);
-  machine->WriteRegister(2, (long)space);
+  Thread * newT = new Thread( "child to execute EXEC code" );
+  newT->Fork( NachosExecThread, (void *)machine->ReadRegister( 4 ));
+  //currentThread->Yield();
   returnFromSystemCall();
 }
 

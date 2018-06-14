@@ -6,10 +6,10 @@ char * buf;// = new int[6];
 	Write("pruepa", 6, fd);
 	Close(fd);
 	Exec("../test/brillo");	
-	Exec("brillo1");
+	Exec("../test/brillo");
 
 	//char* buf = new int[6];
-	fd = Open("archivo.nuevo");
+	fd = Open("archivo.txt");
 	Read(buf, 6, fd);
 	Write(buf, 6, 1);
 

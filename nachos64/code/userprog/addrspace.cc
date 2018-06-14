@@ -102,13 +102,14 @@ AddrSpace::AddrSpace(OpenFile *executable)
     bzero(machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory
-		int numPages2 = divRoundUp(noffH.code.size, PageSize);
+
+		int numPages2 = divRoundUp(noffH.code.size, numPages);
 		int direccionDeMem = noffH.code.inFileAddr;
 		for(int j = 0 ; j < numPages2; ++j){
 				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
 				direccionDeMem+=128;
 		}
-		/*
+/*
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
 			noffH.code.virtualAddr, noffH.code.size);
@@ -116,13 +117,13 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			noffH.code.size, noffH.code.inFileAddr);
     }
 		*/
-		int numPages3 = divRoundUp(noffH.initData.size, PageSize);
+		int numPages3 = divRoundUp(noffH.initData.size, numPages);
 		direccionDeMem = noffH.initData.inFileAddr;
 		for(int j = numPages2; j < numPages3; ++j){
 				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
 				direccionDeMem+=128;
 		}
-		/*
+/*
     if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
 			noffH.initData.virtualAddr, noffH.initData.size);
