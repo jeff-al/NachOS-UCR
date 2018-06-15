@@ -5,9 +5,9 @@ char * buf;// = new int[6];
 	fd = Open("archivo.txt");
 	Write("pruepa", 6, fd);
 	Close(fd);
-	Exec("../test/brillo");	
-	Exec("../test/brillo");
-
+	int id = Exec("../test/brillo");	
+	int id2 = Exec("../test/halt");
+	Join(id2);
 	//char* buf = new int[6];
 	fd = Open("archivo.txt");
 	Read(buf, 6, fd);

@@ -29,11 +29,21 @@
 #include "synch.h"
 #include <unistd.h>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 #define KEY 0xB60380
 
 SemTabla * SMT = new SemTabla();
+struct archivosEjec{
+  long hilo;
+  string nombre;
+  archivosEjec(){
+    hilo = -1;
+  }
+};
+vector<archivosEjec*> ejecutables;
+long archivoAE = -1;
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -111,22 +121,28 @@ void Nachos_Open(){    // System call 5
 void Nachos_Read(){ //System call 6
   //Semaphore* Console = new Semaphore((char*)'S', 1);
   int size = machine->ReadRegister( 5 );	// Read size to write
-  char buffer[size] = "";
+  char buffer[size] = {0};
   int r4 = machine->ReadRegister(4);
-
   // buffer = Read data from address given by user;
   OpenFileId id = machine->ReadRegister( 6 );	// Read file descriptor
+  int bytesLeidos = 0;
   Console->P();
   switch (id) {
-      case  ConsoleInput:	// User could not write to standard input
-          machine->WriteRegister( 2, -1 );
+      case  ConsoleInput:
+          fgets( buffer, size , stdin );
+          bytesLeidos = strlen( buffer );
+          // write into Nachos mem
+          for (int index = 0; index < bytesLeidos; ++  index ){
+              machine->WriteMem(r4, 1, buffer[index] );
+              ++r4;
+          }
+          machine->WriteRegister(2, bytesLeidos );
           break;
       case  ConsoleOutput:
-          buffer[ size ] = 0;
-          printf( "%s", buffer );
+          machine->WriteRegister( 2, -1 );
           break;
       case ConsoleError:	// This trick permits to write integers to console
-          printf( "%d\n", machine->ReadRegister( 4 ) );
+          machine->WriteRegister( 2, -1 );
           break;
       default:
           if(currentThread->NOP->isOpened(id)){
@@ -251,7 +267,7 @@ void Nachos_Fork(){
   	// This new constructor will copy the shared segments (space variable) from currentThread, passed
   	// as a parameter, and create a new stack for the new child
   	newT->space = new AddrSpace( currentThread->space );
-
+    currentThread->NOP->addThread();
   	// We (kernel)-Fork to a new method to execute the child code
   	// Pass the user routine address, now in register 4, as a parameter
   	// Note: in 64 bits register 4 need to be casted to (void *)
@@ -280,14 +296,11 @@ void Nachos_SemDestroy(){
 
 void Nachos_SemSignal(){
     int id = machine->ReadRegister( 4 );
-    cout << "signal id :" << id << endl;
     long idReal = SMT->getSemaphore(id);
     if(idReal == -1){
       machine->WriteRegister(2, -1);
-      cout << "no hago signal en sem:" << idReal << endl;
     }else{
       Semaphore * sem = (Semaphore *) idReal;
-      cout << "hago signal en sem:" << idReal << endl;
       sem->V();
       machine->WriteRegister(2, 1);
     }
@@ -295,13 +308,11 @@ void Nachos_SemSignal(){
 }
 void Nachos_SemWait(){
     int id = machine->ReadRegister( 4 );
-    cout << "wait id :" << id << endl;
     long idReal = SMT->getSemaphore(id);
     if(idReal == -1){
       machine->WriteRegister(2, -1);
     }else{
       Semaphore * sem = (Semaphore *) idReal;
-      cout << "hago wait en sem:" << idReal << endl;
       sem->P();
       machine->WriteRegister(2, 1);
     }
@@ -309,6 +320,7 @@ void Nachos_SemWait(){
 }
 
 void Nachos_Exit(){
+    currentThread->NOP->delThread();
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     Thread * next = scheduler->FindNextToRun();
     if(next == NULL){
@@ -317,6 +329,7 @@ void Nachos_Exit(){
       scheduler->Run(next);
     }
     interrupt->SetLevel(oldLevel);
+    returnFromSystemCall();
 }
 
 void Nachos_Yield(){
@@ -324,40 +337,60 @@ void Nachos_Yield(){
   returnFromSystemCall();
 }
 
-void NachosExecThread(void *p) { // for 64 bits version
-    char name[128];
-    int k = 1;
-    int i = 0;
-    int reg4 = (long)p;
-    do{
-      machine->ReadMem(reg4,1,&k);
-      reg4++;
-      name[i] = k;
-      i++;
-    }while(k != 0);
-    name[i] = 0;
-    OpenFile *executable = fileSystem->Open(name);
+void NachosExecThread(void *p) {
+    archivosEjec * ejec = (archivosEjec *)p;
+    OpenFile *executable = fileSystem->Open(ejec->nombre.c_str());
+    if (executable == NULL) {
+       cout << "no se puede abrir el archivo: " << ejec->nombre << endl;
+       return;
+    }
     AddrSpace *space = new AddrSpace(executable);
+    delete currentThread->space;
+    currentThread->space = space;
     delete executable;
     space->InitRegisters();             // set the initial register values
     space->RestoreState();              // load page table register
     machine->Run();                     // jump to the user progam
-    //ASSERT(false);
-
+    cout << "Fallo" << endl;
 }
 
 void Nachos_Exec(){
+  char name[128];
+  int k = 1;
+  int i = 0;
+  int reg4 = machine->ReadRegister( 4 );
+  do{
+    machine->ReadMem(reg4,1,&k);
+    reg4++;
+    name[i] = k;
+    i++;
+  }while(k != 0);
+  name[i] = 0;
+  string nombre = name;
+  archivosEjec* newEj = new archivosEjec();
   Thread * newT = new Thread( "child to execute EXEC code" );
-  newT->Fork( NachosExecThread, (void *)machine->ReadRegister( 4 ));
-  //currentThread->Yield();
+  archivoAE++;
+  newEj->hilo = (long) newT;
+  newEj->nombre = nombre;
+  ejecutables.push_back(newEj);
+  currentThread->NOP->addThread();
+  newT->Fork( NachosExecThread, (void *)newEj);
+  machine->WriteRegister(2, archivoAE);
   returnFromSystemCall();
 }
 
 void Nachos_Join(){
-  //OpenFile *executable = machine->ReadRegister( 4 );
-  //AddrSpace *space = new AddrSpace(executable);
-
-  //machine->WriteRegister(2, 1);
+  long id = machine->ReadRegister( 4 );
+  archivosEjec* ejec = ejecutables[ id ];
+  Thread * next = (Thread *)ejec->hilo;
+  if(next == NULL){
+     machine->WriteRegister(2, -1);
+  }else{
+     scheduler->ReadyToRun(currentThread);
+     scheduler->Run(next);
+     cout << "safd" << endl;
+     machine->WriteRegister(2, 1);
+  }
   returnFromSystemCall();
 }
 
