@@ -111,7 +111,7 @@ void Nachos_Exit(){
       scheduler->Run(next);	// si hay alguno lo mandamos a correr
     }
     interrupt->SetLevel(oldLevel);
-	
+
     returnFromSystemCall();
 }
 
@@ -177,7 +177,7 @@ void Nachos_Join(){
 }
 
 // System call 4
-void Nachos_Create(){    
+void Nachos_Create(){
     char name[128] = "";
     int c = 1;
     int direc = machine->ReadRegister(4);
@@ -261,7 +261,7 @@ void Nachos_Read(){
 void Nachos_Write() {
     int size = machine->ReadRegister( 5 );	// Leemos el tamaño
     char buffer[size+1] = {0};
-    OpenFileId id = machine->ReadRegister( 6 );	
+    OpenFileId id = machine->ReadRegister( 6 );
     Console->P();
     int c;
     int direc;
@@ -302,7 +302,7 @@ void Nachos_Write() {
 }       // Nachos_Write
 
 // System call 8
-void Nachos_Close(){    
+void Nachos_Close(){
     int id = machine->ReadRegister(4);
     int id2 = currentThread->NOP->getUnixHandle(id);
     close(id2);
@@ -417,72 +417,76 @@ ExceptionHandler(ExceptionType which)
         switch ( type ) {
           case SC_Halt:					// System call # 0
               cout << "Halt " << endl;
-              Nachos_Halt();             
+              Nachos_Halt();
               break;
-		  case SC_Exit:					// System call # 1
+		      case SC_Exit:					// System call # 1
               cout << "Exit " << endl;
               Nachos_Exit();
               break;
-		  case SC_Exec:					// System call # 2
+		      case SC_Exec:					// System call # 2
               cout << "Exec " << endl;
               Nachos_Exec();
               break;
           case SC_Join:					// System call # 3
               cout << "Join " << endl;
               Nachos_Join();
-			  returnFromSystemCall();
+			        returnFromSystemCall();
               break;
           case SC_Create:				// System call # 4
-               cout << "Create " << endl;
-               Nachos_Create();
-               break;
+              cout << "Create " << endl;
+              Nachos_Create();
+              break;
           case SC_Open:					// System call # 5
-               cout << "Open " << endl;
-               Nachos_Open();
-               break;
-		  case SC_Read:     			// System call # 6
-               cout << "Read " << endl;
-               Nachos_Read();
-               break;
-           case SC_Write:				// System call # 7
-               cout << "Write " << endl;
-               Nachos_Write();
-               break;
+              cout << "Open " << endl;
+              Nachos_Open();
+              break;
+		      case SC_Read:     			// System call # 6
+              cout << "Read " << endl;
+              Nachos_Read();
+              break;
+          case SC_Write:				// System call # 7
+              cout << "Write " << endl;
+              Nachos_Write();
+              break;
           case SC_Close:				// System call # 8
-               cout << "Close " << endl;
-               Nachos_Close();
-               break;
+              cout << "Close " << endl;
+              Nachos_Close();
+              break;
           case SC_Fork:					// System call # 9
-               cout << "Fork " << endl;
-               Nachos_Fork();
-               break;
+              cout << "Fork " << endl;
+              Nachos_Fork();
+              break;
           case SC_Yield:				// System call # 10
-               cout << "Yield " << endl;
-               Nachos_Yield();
-               break;
+              cout << "Yield " << endl;
+              Nachos_Yield();
+              break;
           case SC_SemCreate:			// System call # 11
-               cout << "Create " << endl;
-               Nachos_SemCreate();
-               break;
+              cout << "Create " << endl;
+              Nachos_SemCreate();
+              break;
           case SC_SemDestroy:			// System call # 12
-               cout << "Destroy " << endl;
-               Nachos_SemDestroy();
-               break;
+              cout << "Destroy " << endl;
+              Nachos_SemDestroy();
+              break;
           case SC_SemSignal:			// System call # 13
-               cout << "Signal " << endl;
-               Nachos_SemSignal();
-               break;
+              cout << "Signal " << endl;
+              Nachos_SemSignal();
+              break;
           case SC_SemWait:				// System call # 14
-               cout << "Wait " << endl;
-               Nachos_SemWait();
-               break;
-           default:
-               cout << "defalut " << endl;
-               printf("Unexpected syscall exception %d\n", type );
-               ASSERT(false);
-               break;
-     }
-     break;
+              cout << "Wait " << endl;
+              Nachos_SemWait();
+              break;
+          default:
+              cout << "defalut " << endl;
+              printf("Unexpected syscall exception %d\n", type );
+              ASSERT(false);
+              break;
+        }
+        break;
+     case PageFaultException:
+        cout << "PageFault"<< endl;
+        ASSERT(false);
+        break;
      default:
         printf( "Unexpected exception %d\n", which );
         ASSERT(false);

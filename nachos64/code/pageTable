@@ -1,0 +1,95 @@
+machine/mipssim.cc:    if (!machine->ReadMem(registers[PCReg], 4, &raw))
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 1, &value))
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 2, &value))
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 4, &value))
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 4, &value))
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 4, &value))
+machine/mipssim.cc:	if (!machine->WriteMem((unsigned) 
+machine/mipssim.cc:	if (!machine->WriteMem((unsigned) 
+machine/mipssim.cc:	if (!machine->WriteMem((unsigned) 
+machine/mipssim.cc:	if (!machine->ReadMem((tmp & ~0x3), 4, &value))
+machine/mipssim.cc:	if (!machine->WriteMem((tmp & ~0x3), 4, value))
+machine/mipssim.cc:	if (!machine->ReadMem((tmp & ~0x3), 4, &value))
+machine/mipssim.cc:	if (!machine->WriteMem((tmp & ~0x3), 4, value))
+machine/interrupt.cc:    	machine->DelayedLoad(0, 0);
+machine/translate.cc:	machine->RaiseException(exception, addr);
+machine/translate.cc:	data = machine->mainMemory[physicalAddress];
+machine/translate.cc:	data = *(unsigned short *) &machine->mainMemory[physicalAddress];
+machine/translate.cc:	data = *(unsigned int *) &machine->mainMemory[physicalAddress];
+machine/translate.cc:	machine->RaiseException(exception, addr);
+machine/translate.cc:	machine->mainMemory[physicalAddress] = (unsigned char) (value & 0xff);
+machine/translate.cc:	*(unsigned short *) &machine->mainMemory[physicalAddress]
+machine/translate.cc:	*(unsigned int *) &machine->mainMemory[physicalAddress]
+Binary file bin/mips-gcc matches
+Binary file bin/mips-strip matches
+Binary file bin/mips-cpp matches
+userprog/progtest.cc:    machine->Run();			// jump to the user progam
+userprog/progtest.cc:    ASSERT(false);			// machine->Run never returns;
+userprog/addrspace.cc:    bzero(machine->mainMemory, size);
+userprog/addrspace.cc:				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
+userprog/addrspace.cc:        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+userprog/addrspace.cc:				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
+userprog/addrspace.cc:        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
+userprog/addrspace.cc:	machine->WriteRegister(i, 0);
+userprog/addrspace.cc:    machine->WriteRegister(PCReg, 0);
+userprog/addrspace.cc:    machine->WriteRegister(NextPCReg, 4);
+userprog/addrspace.cc:    machine->WriteRegister(StackReg, numPages * PageSize - 16);
+userprog/addrspace.cc:    	machine->pageTable = pageTable;
+userprog/addrspace.cc:    	machine->pageTableSize = numPages;
+userprog/addrspace.cc:			//machine->pageTable = NULL;
+userprog/exception.cc:    pc = machine->ReadRegister( PCReg );
+userprog/exception.cc:    npc = machine->ReadRegister( NextPCReg );
+userprog/exception.cc:    machine->WriteRegister( PrevPCReg, pc );        // PrevPC <- PC
+userprog/exception.cc:    machine->WriteRegister( PCReg, npc );           // PC <- NextPC
+userprog/exception.cc:    machine->WriteRegister( NextPCReg, npc + 4 );   // NextPC <- NextPC + 4
+userprog/exception.cc:    machine->Run();                     // jump to the user progam
+userprog/exception.cc:  int reg4 = machine->ReadRegister( 4 );
+userprog/exception.cc:    machine->ReadMem(reg4,1,&k);
+userprog/exception.cc:  machine->WriteRegister(2, archivoAE);
+userprog/exception.cc:	unsigned long id = machine->ReadRegister( 4 );  // Leemos el id del ejecutable que queremos ejecutar
+userprog/exception.cc:		machine->WriteRegister(2, 1);
+userprog/exception.cc:		machine->WriteRegister(2, -1 );
+userprog/exception.cc:    int direc = machine->ReadRegister(4);
+userprog/exception.cc:        machine->ReadMem(direc, 1, &c);
+userprog/exception.cc:    int direc = machine->ReadRegister(4);
+userprog/exception.cc:        machine->ReadMem(direc, 1, &c);
+userprog/exception.cc:    machine->WriteRegister(2, idFake);
+userprog/exception.cc:  int size = machine->ReadRegister( 5 );	// Leemos el tamaño
+userprog/exception.cc:  int r4 = machine->ReadRegister(4);		// Leemos al dirreccion del buffer
+userprog/exception.cc:  OpenFileId id = machine->ReadRegister( 6 );	// Leemos el id del archivo
+userprog/exception.cc:              machine->WriteMem(r4, 1, buffer[index] );
+userprog/exception.cc:          machine->WriteRegister(2, bytesLeidos );
+userprog/exception.cc:          machine->WriteRegister( 2, -1 );
+userprog/exception.cc:          machine->WriteRegister( 2, -1 );
+userprog/exception.cc:                   machine->WriteMem(r4, 1, buffer[i]);
+userprog/exception.cc:              machine->WriteRegister( 2, ret );
+userprog/exception.cc:              machine->WriteRegister( 2, -1 );
+userprog/exception.cc:    int size = machine->ReadRegister( 5 );	// Leemos el tamaño
+userprog/exception.cc:    OpenFileId id = machine->ReadRegister( 6 );
+userprog/exception.cc:    direc = machine->ReadRegister(4);
+userprog/exception.cc:      machine->ReadMem(direc, 1, &c);
+userprog/exception.cc:            machine->WriteRegister( 2, -1 );
+userprog/exception.cc:            printf( "%d\n", machine->ReadRegister( 4 ) );
+userprog/exception.cc:				machine->WriteRegister( 2, ret );
+userprog/exception.cc:				machine->WriteRegister( 2, -1 );
+userprog/exception.cc:    int id = machine->ReadRegister(4);
+userprog/exception.cc:    machine->WriteRegister( RetAddrReg, 4 );
+userprog/exception.cc:    machine->WriteRegister( PCReg, (long) p );
+userprog/exception.cc:    machine->WriteRegister( NextPCReg, (long)(p)+ 4 );
+userprog/exception.cc:    machine->Run();                     // jump to the user progam
+userprog/exception.cc:  	newT->Fork( NachosForkThread, (void *)machine->ReadRegister( 4 ));
+userprog/exception.cc:  int valorInicial = machine->ReadRegister( 4 );
+userprog/exception.cc:  machine->WriteRegister(2, idFake);
+userprog/exception.cc:  int id = machine->ReadRegister( 4 );
+userprog/exception.cc:  machine->WriteRegister(2, ret);
+userprog/exception.cc:    int id = machine->ReadRegister( 4 );
+userprog/exception.cc:      machine->WriteRegister(2, -1);
+userprog/exception.cc:      machine->WriteRegister(2, 1);
+userprog/exception.cc:    int id = machine->ReadRegister( 4 );
+userprog/exception.cc:      machine->WriteRegister(2, -1);
+userprog/exception.cc:      machine->WriteRegister(2, 1);
+userprog/exception.cc:  int type = machine->ReadRegister(2);
+threads/thread.cc:	userRegisters[i] = machine->ReadRegister(i);
+threads/thread.cc:	machine->WriteRegister(i, userRegisters[i]);
+threads/scheduler.cc:    // This is a machine-dependent assembly language routine defined 
+threads/thread.h:// Magical machine-dependent routines, defined in switch.s

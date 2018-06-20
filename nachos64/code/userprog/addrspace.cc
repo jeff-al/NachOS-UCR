@@ -88,8 +88,13 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 			pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-      pageTable[i].physicalPage = memoryMap->Find();
-			pageTable[i].valid = true;
+			#ifndef VM
+				pageTable[i].physicalPage = memoryMap->Find();
+				pageTable[i].valid = true;
+			#else
+				pageTable[i].physicalPage = -1;
+				pageTable[i].valid = false;
+			#endif
 			pageTable[i].use = false;
 			pageTable[i].dirty = false;
 			pageTable[i].readOnly = false;  // if the code segment was entirely on
@@ -225,6 +230,12 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState()
 {
-    machine->pageTable = pageTable;
-    machine->pageTableSize = numPages;
+		#ifndef VM
+			cout << "Hola " << endl;
+    	machine->pageTable = pageTable;
+    	machine->pageTableSize = numPages;
+		#else
+		cout << "Ngfhe " << endl;
+			machine->pageTable = NULL;
+		#endif
 }
