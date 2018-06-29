@@ -20,6 +20,8 @@
 
 class AddrSpace {
   public:
+    TranslationEntry *pageTable;
+    
     AddrSpace(OpenFile *executable);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
@@ -33,11 +35,14 @@ class AddrSpace {
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
 
+    void MoveraMemoria(int vpn);
+
   private:
-    TranslationEntry *pageTable;	// Assume linear page table translation
+  //TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual
 					// address space
+  OpenFile * ejecutable;
 };
 
 #endif // ADDRSPACE_H

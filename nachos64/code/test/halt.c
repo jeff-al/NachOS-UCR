@@ -15,8 +15,9 @@
 int
 main()
 {
-     char* palabra = "";
-    //Halt();
+     Halt();
+     /*char* palabra = "";
+     Halt();
      Create("aguacaton.txt");
      OpenFileId i = Open("aguacaton.txt");
      Write("aguacate el carro es rojo vino", 30, i);

@@ -221,11 +221,11 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	entry = &pageTable[vpn];
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++){
-	  if (tlb[i].valid && (tlb[i].virtualPage == (int)vpn)) {
-		entry = &tlb[i];			// FOUND!
-		break;
-	    }
-		}
+	  			if (tlb[i].valid && (tlb[i].virtualPage == (int)vpn)) {
+							entry = &tlb[i];			// FOUND!
+							break;
+	    		}
+			}
 	if (entry == NULL) {				// not found
     	    DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
     	    return PageFaultException;		// really, this is a TLB fault,

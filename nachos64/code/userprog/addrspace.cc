@@ -63,6 +63,7 @@ SwapHeader (NoffHeader *noffH)
 
 AddrSpace::AddrSpace(OpenFile *executable)
 {
+		ejecutable = executable;
     NoffHeader noffH;
     unsigned int i, size;
 
@@ -89,11 +90,13 @@ AddrSpace::AddrSpace(OpenFile *executable)
     for (i = 0; i < numPages; i++) {
 			pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 			#ifndef VM
+			  pageTable[i].physicalPage = memoryMap->Find();
 				pageTable[i].valid = true;
 			#else
 				pageTable[i].valid = false;
+				pageTable[i].physicalPage = -1;
 			#endif
-			pageTable[i].physicalPage = -1;
+			//pageTable[i].physicalPage = -1;
 			pageTable[i].use = false;
 			pageTable[i].dirty = false;
 			pageTable[i].readOnly = false;  // if the code segment was entirely on
@@ -107,28 +110,31 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 // then, copy in the code and data segments into memory
 		///*
-    /*	int numPages2 = divRoundUp(noffH.code.size, numPages);
+		#ifndef VM
+    int numPages2 = divRoundUp(noffH.code.size, numPages);
 		int direccionDeMem = noffH.code.inFileAddr;
 		for(int j = 0 ; j < numPages2; ++j){
 				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
 				direccionDeMem+=128;
-				}*/
+				}
 		//*/
+
 		/*
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
 			noffH.code.virtualAddr, noffH.code.size);
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
 			noffH.code.size, noffH.code.inFileAddr);
-    }
+    }*/
 		//*/
 		///*
-		/*	int numPages3 = divRoundUp(noffH.initData.size, numPages);
+		int numPages3 = divRoundUp(noffH.initData.size, numPages);
 		direccionDeMem = noffH.initData.inFileAddr;
 		for(int j = numPages2; j < numPages3; ++j){
 				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
 				direccionDeMem+=128;
-				}*/
+				}
+		#endif
 		//*/
 		/*
     if (noffH.initData.size > 0) {
@@ -137,7 +143,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-		//*/
+		*/
 }
 
 AddrSpace::AddrSpace(AddrSpace *addrspace){
@@ -233,4 +239,12 @@ void AddrSpace::RestoreState()
     	machine->pageTable = pageTable;
     	machine->pageTableSize = numPages;
 		#endif
+}
+
+void AddrSpace::MoveraMemoria(int vpn){
+	NoffHeader noffH;
+	//ejecutable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+	int direccionDeMem = noffH.code.inFileAddr;
+	direccionDeMem += vpn*128;
+	ejecutable->ReadAt(&(machine->mainMemory[pageTable[vpn].physicalPage*128]), PageSize, direccionDeMem);
 }

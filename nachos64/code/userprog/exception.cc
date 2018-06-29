@@ -222,7 +222,7 @@ void Nachos_Read(){
   Console->P();		//Usamos semaforo para sincronizar
   switch (id) {
       case  ConsoleInput:
-          fgets( buffer, size , stdin );
+          fgets( buffer, 2 , stdin );
           bytesLeidos = strlen( buffer );
           for (int index = 0; index < bytesLeidos; ++  index ){
               machine->WriteMem(r4, 1, buffer[index] );
@@ -408,6 +408,43 @@ void Nachos_SemWait(){
     returnFromSystemCall();
 }
 
+void Nachos_PageFault(){
+    int paginaVirtual = machine->ReadRegister(39);
+    cout << paginaVirtual << endl;
+    //bool valida =currentThread->space->pageTable[paginaVirtual].valid;
+    //bool sucia = currentThread->space->pageTable[paginaVirtual].dirty;
+    bool valida =currentThread->space->pageTable[paginaVirtual].valid;
+    bool sucia = currentThread->space->pageTable[paginaVirtual].dirty;
+    if(!valida && !sucia){
+      for(int i = 0; i < 4; i++){
+        if(machine->tlb[i].valid == false){
+            machine->tlb[i].virtualPage = paginaVirtual;
+            machine->tlb[i].physicalPage = i;
+            machine->tlb[i].valid = true;
+            currentThread->space->pageTable[paginaVirtual].valid = true;
+            currentThread->space->pageTable[paginaVirtual].physicalPage = memoryMap->Find();
+            currentThread->space->MoveraMemoria(paginaVirtual);
+            break;
+        }
+      }
+      //currentThread->space->pageTable[paginaVirtual]. = ;
+    }
+    /*
+    if(){
+
+    }else if(){
+
+
+    }else if(){
+
+
+    }else if(){
+
+
+    }*/
+
+};
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -485,6 +522,7 @@ ExceptionHandler(ExceptionType which)
         break;
      case PageFaultException:
         cout << "PageFault"<< endl;
+        Nachos_PageFault();
         //ASSERT(false);
         break;
      default:
