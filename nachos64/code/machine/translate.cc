@@ -200,8 +200,6 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     }
 
     // we must have either a TLB or a page table, but not both!
-		printf("page table 0x%x \n", pageTable);
-		printf("TLB 0x%x \n", tlb);
     ASSERT(tlb == NULL || pageTable == NULL);
     ASSERT(tlb != NULL || pageTable != NULL);
 
@@ -223,7 +221,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	entry = &pageTable[vpn];
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++){
-    	    if (tlb[i].valid && (tlb[i].virtualPage == (int)vpn)) {
+	  if (tlb[i].valid && (tlb[i].virtualPage == (int)vpn)) {
 		entry = &tlb[i];			// FOUND!
 		break;
 	    }

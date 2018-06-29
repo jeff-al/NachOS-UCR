@@ -485,7 +485,7 @@ ExceptionHandler(ExceptionType which)
         break;
      case PageFaultException:
         cout << "PageFault"<< endl;
-        ASSERT(false);
+        //ASSERT(false);
         break;
      default:
         printf( "Unexpected exception %d\n", which );

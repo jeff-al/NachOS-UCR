@@ -89,12 +89,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
     for (i = 0; i < numPages; i++) {
 			pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 			#ifndef VM
-				pageTable[i].physicalPage = memoryMap->Find();
 				pageTable[i].valid = true;
 			#else
-				pageTable[i].physicalPage = -1;
 				pageTable[i].valid = false;
 			#endif
+			pageTable[i].physicalPage = -1;
 			pageTable[i].use = false;
 			pageTable[i].dirty = false;
 			pageTable[i].readOnly = false;  // if the code segment was entirely on
@@ -108,12 +107,12 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 // then, copy in the code and data segments into memory
 		///*
-		int numPages2 = divRoundUp(noffH.code.size, numPages);
+    /*	int numPages2 = divRoundUp(noffH.code.size, numPages);
 		int direccionDeMem = noffH.code.inFileAddr;
 		for(int j = 0 ; j < numPages2; ++j){
 				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
 				direccionDeMem+=128;
-		}
+				}*/
 		//*/
 		/*
     if (noffH.code.size > 0) {
@@ -124,12 +123,12 @@ AddrSpace::AddrSpace(OpenFile *executable)
     }
 		//*/
 		///*
-		int numPages3 = divRoundUp(noffH.initData.size, numPages);
+		/*	int numPages3 = divRoundUp(noffH.initData.size, numPages);
 		direccionDeMem = noffH.initData.inFileAddr;
 		for(int j = numPages2; j < numPages3; ++j){
 				executable->ReadAt(&(machine->mainMemory[pageTable[j].physicalPage*128]), PageSize, direccionDeMem);
 				direccionDeMem+=128;
-		}
+				}*/
 		//*/
 		/*
     if (noffH.initData.size > 0) {
@@ -231,11 +230,7 @@ void AddrSpace::SaveState()
 void AddrSpace::RestoreState()
 {
 		#ifndef VM
-			cout << "Hola " << endl;
     	machine->pageTable = pageTable;
     	machine->pageTableSize = numPages;
-		#else
-		cout << "Ngfhe " << endl;
-			machine->pageTable = NULL;
 		#endif
 }

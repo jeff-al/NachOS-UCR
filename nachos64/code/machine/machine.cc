@@ -68,7 +68,6 @@ Machine::Machine(bool debug)
 		}
     pageTable = NULL;
 #else	// use linear page table
-		printf("No funciono \n");
     tlb = NULL;
     pageTable = NULL;
 #endif
