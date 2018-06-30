@@ -411,24 +411,7 @@ void Nachos_SemWait(){
 void Nachos_PageFault(){
     int paginaVirtual = machine->ReadRegister(39);
     cout << paginaVirtual << endl;
-    //bool valida =currentThread->space->pageTable[paginaVirtual].valid;
-    //bool sucia = currentThread->space->pageTable[paginaVirtual].dirty;
-    bool valida =currentThread->space->pageTable[paginaVirtual].valid;
-    bool sucia = currentThread->space->pageTable[paginaVirtual].dirty;
-    if(!valida && !sucia){
-      for(int i = 0; i < 4; i++){
-        if(machine->tlb[i].valid == false){
-            machine->tlb[i].virtualPage = paginaVirtual;
-            machine->tlb[i].physicalPage = i;
-            machine->tlb[i].valid = true;
-            currentThread->space->pageTable[paginaVirtual].valid = true;
-            currentThread->space->pageTable[paginaVirtual].physicalPage = memoryMap->Find();
-            currentThread->space->MoveraMemoria(paginaVirtual);
-            break;
-        }
-      }
-      //currentThread->space->pageTable[paginaVirtual]. = ;
-    }
+    currentThread->space->MoveraMemoria(paginaVirtual);
     /*
     if(){
 

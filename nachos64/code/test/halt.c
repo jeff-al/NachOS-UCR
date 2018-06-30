@@ -16,36 +16,5 @@ int
 main()
 {
      Halt();
-     /*char* palabra = "";
-     Halt();
-     Create("aguacaton.txt");
-     OpenFileId i = Open("aguacaton.txt");
-     Write("aguacate el carro es rojo vino", 30, i);
-     Close(i);
-     Read(palabra, 8, i);
-     Close(i);
-     Create("palabra.txt");
-     OpenFileId i2 = Open("palabra.txt");
-     Write(palabra, 8, i2);
-     Close(i2);
-    /* not reached */
 }
-/*
-int id;
-void hijo(int dummy){
-	Write( "hijo", 5, 1 );
-	SemSignal(id);
-}
-
-void hijo(int);
-int main(){
-	id = SemCreate(0);
-	Fork(hijo);
-
-	SemWait(id);
-	Write("padre", 5, 1);
-	SemDestroy(id);
-	Exit(0);
-}
-*/
 

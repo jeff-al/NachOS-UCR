@@ -243,8 +243,29 @@ void AddrSpace::RestoreState()
 
 void AddrSpace::MoveraMemoria(int vpn){
 	NoffHeader noffH;
-	//ejecutable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-	int direccionDeMem = noffH.code.inFileAddr;
-	direccionDeMem += vpn*128;
-	ejecutable->ReadAt(&(machine->mainMemory[pageTable[vpn].physicalPage*128]), PageSize, direccionDeMem);
+	bool valida = pageTable[vpn].valid;
+    	bool sucia = pageTable[vpn].dirty;
+    	if(!valida && !sucia){
+     	 for(int i = 0; i < 4; i++){
+      	  if(machine->tlb[i].valid == false){
+            	machine->tlb[i].valid = true;
+            	pageTable[vpn].valid = true;
+            	pageTable[vpn].physicalPage = memoryMap->Find();
+        	//machine->tlb[i].physicalPage = pageTable[vpn].physicalPage;
+        	machine->tlb[i].virtualPage = pageTable[vpn].physicalPage;
+            break;
+        }
+      }
+      //currentThread->space->pageTable[paginaVirtual]. = ;
+    }
+	if(vpn < noffH.initData.size){
+		int direccionDeMem = noffH.code.inFileAddr;
+		machine->WriteMem(vpn, 1, pageTable[vpn].physicalPage);
+		cout << "Pertenece a codigo" <<endl;
+	}
+	else if(vpn < noffH.uninitData.size){
+		cout << "Pertenece a datosI" <<endl;
+	}else {
+		cout << "Pertenece a datos No I" <<endl;
+	}
 }
