@@ -65,6 +65,7 @@ Machine::Machine(bool debug)
     tlb = new TranslationEntry[TLBSize];
     for (i = 0; i < TLBSize; i++){
 				tlb[i].valid = false;
+				tlb[i].dirty = false;
 		}
     pageTable = NULL;
 #else	// use linear page table

@@ -15,14 +15,15 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
 class AddrSpace {
   public:
     TranslationEntry *pageTable;
-    
-    AddrSpace(OpenFile *executable);	// Create an address space,
+
+    AddrSpace(OpenFile *executable, const char *filename = "");	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
     AddrSpace(AddrSpace *addrspace);
@@ -43,6 +44,7 @@ class AddrSpace {
     unsigned int numPages;		// Number of pages in the virtual
 					// address space
   OpenFile * ejecutable;
+  NoffHeader noffH1;
 };
 
 #endif // ADDRSPACE_H

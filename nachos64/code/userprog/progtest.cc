@@ -14,6 +14,10 @@
 #include "addrspace.h"
 #include "synch.h"
 
+// Eliminar
+#include <iostream>
+using namespace std;
+
 //----------------------------------------------------------------------
 // StartProcess
 // 	Run a user program.  Open the executable, load it into
@@ -25,16 +29,18 @@ StartProcess(const char *filename)
 {
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
-
+    cout << "exe1: " << executable << endl;
     if (executable == NULL) {
 	printf("Unable to open file %s\n", filename);
 	return;
     }
-    space = new AddrSpace(executable);
+    space = new AddrSpace(executable, filename);
     currentThread->space = space;
-
-    delete executable;			// close file
-
+    cout << "exe2: " << executable << endl;
+    if (executable != NULL){
+      delete executable;			// close file
+    }
+    cout << "exe2: " << executable << endl;
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
 
