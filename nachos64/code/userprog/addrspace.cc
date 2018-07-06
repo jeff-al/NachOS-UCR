@@ -63,6 +63,10 @@ SwapHeader (NoffHeader *noffH)
 
 AddrSpace::AddrSpace(OpenFile *executable, const char *filename)
 {
+
+		if (Swap == NULL){
+			Swap = fileSystem->Open("SWAP");
+		}
 		#ifdef VM
 			strcpy( ejecutable, filename );
 		#endif
@@ -225,8 +229,17 @@ AddrSpace::InitRegisters()
 // 	On a context switch, save any machine state, specific
 //	to this address space, that needs saving.
 //
-//	For now, nothing!
+//	For now, nothing! && !pageTable[machine->tlb[i].virtualPage].valid
 //----------------------------------------------------------------------
+
+/*
+if(pageTable[machine->tlb[i].virtualPage].dirty){
+	int campo = swapMap->Find();
+	Swap->WriteAt(&(machine->mainMemory[(pageTable[i].physicalPage)*128]), PageSize, campo*128);
+	memoryMap->Clear(machine->tlb[i].physicalPage);
+	pageTable[machine->tlb[i].virtualPage].physicalPage = campo;
+}
+*/
 
 void AddrSpace::SaveState()
 {
@@ -254,11 +267,22 @@ void AddrSpace::RestoreState()
 
 int iter = 0;
 void AddrSpace::MoveraMemoria(int vpn){
-  //  SaveState();
+  	SaveState();
 	  OpenFile *executable = fileSystem->Open(ejecutable);
 		int numPages1 = divRoundUp(noffH1.code.size, PageSize);
 		int numPages2 = divRoundUp(noffH1.initData.size, PageSize);
 		int direccionDeMem;
+		//pageTable[machine->tlb[iter].virtualPage].valid = false; //Puede no funcionar
+			//-----------------------------------------------
+				if(pageTable[machine->tlb[iter].virtualPage].dirty){
+					int campo = swapMap->Find();
+					Swap->WriteAt(&(machine->mainMemory[(pageTable[iter].physicalPage)*128]), PageSize, campo*128);
+					memoryMap->Clear(machine->tlb[iter].physicalPage);
+					pageTable[machine->tlb[iter].virtualPage].physicalPage = campo;
+					pageTable[machine->tlb[iter].virtualPage].valid = false; //Puede no funcionar
+					machine->tlb[iter].dirty = false;
+				}
+			//---------------------------------------------
 		if(vpn < numPages1){
 			cout << "Pertenece a codigo" <<endl;
 			bool valida = pageTable[vpn].valid;
@@ -289,7 +313,7 @@ void AddrSpace::MoveraMemoria(int vpn){
 							machine->tlb[iter].physicalPage = pageTable[vpn].physicalPage;
 							machine->tlb[iter].virtualPage = vpn;
 							iter = ++iter % 4;
-							executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, noffH1.initData.inFileAddr+vpn*PageSize);
+							executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, noffH1.code.inFileAddr+(vpn*PageSize));
 			}else if((valida && !sucia) || (valida && sucia)){
 							machine->tlb[iter].valid = true;
 							pageTable[vpn].valid = true;
@@ -297,7 +321,17 @@ void AddrSpace::MoveraMemoria(int vpn){
 							machine->tlb[iter].virtualPage = vpn;
 							iter = ++iter % 4;
 			} else if(!valida && sucia){
-				// Hacer SWAP
+						cout << "Caso SWAP"<<endl;
+						int campoViejo = pageTable[vpn].physicalPage;
+						Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, pageTable[vpn].physicalPage*PageSize);
+						machine->tlb[iter].valid = true;
+						pageTable[vpn].valid = true;
+						pageTable[vpn].physicalPage = memoryMap->Find();
+						machine->tlb[iter].physicalPage = pageTable[vpn].physicalPage;
+						machine->tlb[iter].virtualPage = vpn;
+						machine->tlb[iter].dirty = true;
+						iter = ++iter % 4;
+						Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, campoViejo*PageSize);
 			}
 		}else{
 			cout << "no Pertenece a datos" <<endl;
@@ -315,8 +349,21 @@ void AddrSpace::MoveraMemoria(int vpn){
 							machine->tlb[iter].virtualPage = vpn;
 							iter = ++iter % 4;
 			} else if(!valida && sucia){
-				// Hacer SWAP
+				cout << "Caso SWAP"<<endl;
+				int campoViejo = pageTable[vpn].physicalPage;
+				machine->tlb[iter].valid = true;
+				pageTable[vpn].valid = true;
+				pageTable[vpn].physicalPage = memoryMap->Find();
+				machine->tlb[iter].physicalPage = pageTable[vpn].physicalPage;
+				machine->tlb[iter].virtualPage = vpn;
+				machine->tlb[iter].dirty = true;
+				iter = ++iter % 4;
+				Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, campoViejo*PageSize);
 			}
-}
-
+		}
+		for (int i = 0; i < 4; i++){
+			cout << "VPN: " << machine->tlb[i].virtualPage << endl;
+			cout << "Fisica: " << machine->tlb[i].physicalPage << endl;
+			cout << "Sucia: " << machine->tlb[i].dirty << endl;
+		}
 }

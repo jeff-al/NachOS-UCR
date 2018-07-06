@@ -45,6 +45,7 @@ class AddrSpace {
 					// address space
   char ejecutable[128];
   NoffHeader noffH1;
+  OpenFile *Swap = NULL;
 };
 
 #endif // ADDRSPACE_H

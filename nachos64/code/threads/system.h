@@ -51,4 +51,9 @@ extern SynchDisk   *synchDisk;
 extern PostOffice* postOffice;
 #endif
 
+#ifdef VM
+#include "bitmap.h"
+extern BitMap* swapMap;
+#endif
+
 #endif // SYSTEM_H

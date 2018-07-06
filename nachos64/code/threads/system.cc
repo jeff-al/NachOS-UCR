@@ -41,6 +41,9 @@ BitMap *memoryMap;
 PostOffice *postOffice;
 #endif
 
+#ifdef VM	// requires either FILESYS or FILESYS_STUB
+BitMap *swapMap;
+#endif
 
 // External definition, to allow us to take a pointer to this function
 extern void Cleanup();
@@ -192,6 +195,10 @@ Initialize(int argc, char **argv)
 
 #ifdef NETWORK
     postOffice = new PostOffice(netname, rely, 10);
+#endif
+
+#ifdef VM
+    swapMap = new BitMap(NumPhysPages*2);
 #endif
 }
 
