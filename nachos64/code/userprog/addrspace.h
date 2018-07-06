@@ -43,7 +43,7 @@ class AddrSpace {
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual
 					// address space
-  OpenFile * ejecutable;
+  char ejecutable[128];
   NoffHeader noffH1;
 };
 

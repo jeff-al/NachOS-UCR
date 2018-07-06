@@ -29,18 +29,16 @@ StartProcess(const char *filename)
 {
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
-    cout << "exe1: " << executable << endl;
     if (executable == NULL) {
 	printf("Unable to open file %s\n", filename);
 	return;
     }
     space = new AddrSpace(executable, filename);
     currentThread->space = space;
-    cout << "exe2: " << executable << endl;
-    if (executable != NULL){
-      delete executable;			// close file
-    }
-    cout << "exe2: " << executable << endl;
+
+
+  //delete executable;			// close file
+
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
 

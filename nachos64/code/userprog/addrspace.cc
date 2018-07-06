@@ -64,7 +64,7 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace(OpenFile *executable, const char *filename)
 {
 		#ifdef VM
-			ejecutable = fileSystem->Open(filename);
+			strcpy( ejecutable, filename );
 		#endif
     NoffHeader noffH;
     unsigned int i, size;
@@ -111,7 +111,8 @@ AddrSpace::AddrSpace(OpenFile *executable, const char *filename)
 
 // zero out the entire address space, to zero the unitialized data segment
 // and the stack segment
-    bzero(machine->mainMemory, size);
+
+  //  bzero(machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory
 		///*
@@ -254,6 +255,7 @@ void AddrSpace::RestoreState()
 int iter = 0;
 void AddrSpace::MoveraMemoria(int vpn){
   //  SaveState();
+	  OpenFile *executable = fileSystem->Open(ejecutable);
 		int numPages1 = divRoundUp(noffH1.code.size, PageSize);
 		int numPages2 = divRoundUp(noffH1.initData.size, PageSize);
 		int direccionDeMem;
@@ -268,7 +270,7 @@ void AddrSpace::MoveraMemoria(int vpn){
 		        	machine->tlb[iter].physicalPage = pageTable[vpn].physicalPage;
 		        	machine->tlb[iter].virtualPage = vpn;
 							iter = ++iter % 4;
-							ejecutable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, noffH1.code.inFileAddr+vpn*PageSize);
+							executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, noffH1.code.inFileAddr+vpn*PageSize);
 		  }else if(valida && !sucia){
 		          machine->tlb[iter].valid = true;
 		          pageTable[vpn].valid = true;
@@ -287,7 +289,7 @@ void AddrSpace::MoveraMemoria(int vpn){
 							machine->tlb[iter].physicalPage = pageTable[vpn].physicalPage;
 							machine->tlb[iter].virtualPage = vpn;
 							iter = ++iter % 4;
-							ejecutable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, noffH1.initData.inFileAddr+vpn*PageSize);
+							executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, noffH1.initData.inFileAddr+vpn*PageSize);
 			}else if((valida && !sucia) || (valida && sucia)){
 							machine->tlb[iter].valid = true;
 							pageTable[vpn].valid = true;
