@@ -420,19 +420,6 @@ void Nachos_PageFault(){
 	  }
 	  i = vpn;
     currentThread->space->MoveraMemoria(vpn);
-    /*
-    if(){
-
-    }else if(){
-
-
-    }else if(){
-
-
-    }else if(){
-
-
-    }*/
 
 };
 

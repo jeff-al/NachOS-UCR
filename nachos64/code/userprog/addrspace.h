@@ -38,6 +38,8 @@ class AddrSpace {
 
     void MoveraMemoria(int vpn);
 
+    void copiarATLB (int indPagT, int indTLB);
+
   private:
   //TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
