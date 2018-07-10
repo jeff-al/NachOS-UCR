@@ -23,6 +23,7 @@ class AddrSpace {
   public:
     TranslationEntry *pageTable;
 
+
     AddrSpace(OpenFile *executable, const char *filename = "");	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
@@ -40,6 +41,16 @@ class AddrSpace {
 
     void copiarATLB (int indPagT, int indTLB);
 
+    void buscarVictima(int vpn);
+
+    struct IPT{
+      int vpn = -1;
+      int veces = 0;
+    }IPT[32];
+
+    typedef struct IPT TPI;
+
+    TPI *ipt;
   private:
   //TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
