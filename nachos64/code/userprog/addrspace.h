@@ -41,7 +41,7 @@ class AddrSpace {
 
     void copiarATLB (int indPagT, int indTLB);
 
-    void buscarVictima(int vpn);
+    int buscarVictima(int vpn);
 
     struct IPT{
       int vpn = -1;

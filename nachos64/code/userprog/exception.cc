@@ -409,16 +409,19 @@ void Nachos_SemWait(){
 }
 
 int i = -1;
+int pagPaults = 0;
 void Nachos_PageFault(){
     int dirVirtual = machine->ReadRegister(39);
     cout << "Direccion virtual: "<< dirVirtual << endl;
     int vpn = dirVirtual / PageSize;
     cout << "Pagina virtual: "<<  vpn << endl;
     if (i == vpn){
-		    cout << "O.o" << endl;
+		    cout << "Ciclo?" << endl;
 		    ASSERT(false);
 	  }
 	  i = vpn;
+	pagPaults++;
+	cout << "Page Faults: "<<  pagPaults << endl;
     currentThread->space->MoveraMemoria(vpn);
 
 };

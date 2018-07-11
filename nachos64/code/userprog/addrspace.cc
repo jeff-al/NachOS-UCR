@@ -267,145 +267,154 @@ void AddrSpace::RestoreState()
 }
 
 int iter = 0;
-int pagPaults = 0;
 void AddrSpace::MoveraMemoria(int vpn){
-  //	SaveState();
-		pagPaults++;
-		cout << "PF" << pagPaults << endl;
-	  OpenFile *executable = fileSystem->Open(ejecutable);
-		int numPages1 = divRoundUp(noffH1.code.size, PageSize);
-		int numPages2 = divRoundUp(noffH1.initData.size, PageSize);
-		//pageTable[machine->tlb[iter].virtualPage].valid = false; //Puede no funcionar
-			//-----------------------------------------------
+	for(int i = 0; i < 4; i++){
+		pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
+		pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
+	}
+	OpenFile *executable = fileSystem->Open(ejecutable);
+	int numPages1 = divRoundUp(noffH1.code.size, PageSize);
+	int numPages2 = divRoundUp(noffH1.initData.size, PageSize);
+	bool valida = pageTable[vpn].valid;
+	bool sucia = pageTable[vpn].dirty;
+	int ubcMemFis = 0;
+	if(vpn<numPages1){
+		cout << "Codigo" << endl;
+		if(!valida){
+			// Cargar la pagina a MEM y al TLB
+			ubcMemFis = memoryMap->Find();
+			if(-1 == ubcMemFis){
+				ubcMemFis = buscarVictima(vpn);
+			}
+			pageTable[vpn].physicalPage = ubcMemFis;
+			pageTable[vpn].virtualPage = vpn;
+	   		pageTable[vpn].valid = true;
+			pageTable[vpn].use = true;
+			pageTable[vpn].dirty = false;
+			pageTable[vpn].readOnly = true;
+			copiarATLB(vpn , iter);
+			iter = ++iter % 4;
+			executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*PageSize]), PageSize, sizeof(NoffHeader)+vpn*PageSize);
+			ipt[ubcMemFis].vpn = vpn;
+		}else{
+			// Pasar del PT al TLB
+			copiarATLB(vpn, iter);
+			iter = ++iter % 4;
+		}
+	}else if(vpn<numPages2){
+		cout << "Datos Inicializados" << endl;
+		if(!valida && !sucia){
+			// Cargar la pagina a MEM y al TLB
+			ubcMemFis = memoryMap->Find();
+			if(-1 == ubcMemFis){
+				ubcMemFis = buscarVictima(vpn);
 				if(pageTable[machine->tlb[iter].virtualPage].dirty){
 					int campo = swapMap->Find();
 					Swap->WriteAt(&(machine->mainMemory[(pageTable[iter].physicalPage)]), PageSize, campo*PageSize);
 					memoryMap->Clear(machine->tlb[iter].physicalPage);
 					pageTable[machine->tlb[iter].virtualPage].physicalPage = campo;
-					pageTable[machine->tlb[iter].virtualPage].valid = false; //Puede no funcionar
+					pageTable[machine->tlb[iter].virtualPage].valid = false;
 				}
-			//---------------------------------------------
-			bool valida = pageTable[vpn].valid;
-			bool sucia = pageTable[vpn].dirty;
-			int ubcMemFis = 0;
-
-		if(vpn < numPages1){
-			cout << "Pertenece a codigo" <<endl;
-		  if(!valida && !sucia){
-							ubcMemFis = memoryMap->Find();
-							if(ubcMemFis == -1){
-								buscarVictima(vpn);
-							}else{
-							pageTable[vpn].physicalPage = ubcMemFis;
-							pageTable[vpn].virtualPage = vpn;
-		          pageTable[vpn].valid = true;
-							pageTable[vpn].use = true;
-							pageTable[vpn].dirty = false;
-							pageTable[vpn].readOnly = false;
-							copiarATLB(vpn , iter);
-							iter = ++iter % 4;
-							executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*PageSize]), PageSize, sizeof(NoffHeader)+vpn*PageSize);
-							ipt[ubcMemFis].vpn = ubcMemFis;
-							ipt[ubcMemFis].veces++;
-						}
-		  }else if(valida && !sucia){
-							copiarATLB(vpn , iter);
-							ipt[pageTable[vpn].physicalPage].veces++;
-							iter = ++iter % 4;
-		}
-	}else if(vpn < numPages2){
-			cout << "Pertenece a datos" <<endl;
-			if(!valida && !sucia){
-							ubcMemFis = memoryMap->Find();
-							if(ubcMemFis == -1){
-								buscarVictima(vpn);
-							}else{
-							pageTable[vpn].physicalPage = ubcMemFis;
-							pageTable[vpn].virtualPage = vpn;
-		          pageTable[vpn].valid = true;
-							pageTable[vpn].use = true;
-							pageTable[vpn].dirty = false;
-							pageTable[vpn].readOnly = false;
-							copiarATLB(vpn , iter);
-							iter = ++iter % 4;
-							executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*PageSize]), PageSize, sizeof(NoffHeader)+(vpn*PageSize));
-							ipt[ubcMemFis].vpn = ubcMemFis;
-							ipt[ubcMemFis].veces++;
-						}
-			}else if((valida && !sucia) || (valida && sucia)){
-							copiarATLB(vpn , iter);
-							ipt[pageTable[vpn].physicalPage].veces++;
-							iter = ++iter % 4;
-			} else if(!valida && sucia){
-							cout << "Caso SWAP"<<endl;
-							int campoViejo = pageTable[vpn].physicalPage;
-							ubcMemFis = memoryMap->Find();
-							if(ubcMemFis == -1){
-								buscarVictima(vpn);
-							}else{
-							pageTable[vpn].physicalPage = ubcMemFis;
-							pageTable[vpn].virtualPage = vpn;
-		          pageTable[vpn].valid = true;
-							pageTable[vpn].use = true;
-							pageTable[vpn].dirty = true;
-							pageTable[vpn].readOnly = false;
-							copiarATLB(vpn , iter);
-							iter = ++iter % 4;
-							Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, campoViejo*PageSize);
-							swapMap->Clear(campoViejo);
-							ipt[ubcMemFis].vpn = ubcMemFis;
-							ipt[ubcMemFis].veces++;
-						}
 			}
+			pageTable[vpn].physicalPage = ubcMemFis;
+			pageTable[vpn].virtualPage = vpn;
+		    pageTable[vpn].valid = true;
+			pageTable[vpn].use = true;
+			pageTable[vpn].dirty = false;
+			pageTable[vpn].readOnly = false;
+			copiarATLB(vpn , iter);
+			iter = ++iter % 4;
+			executable->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*PageSize]), PageSize, sizeof(NoffHeader)+(vpn*PageSize));
+			ipt[ubcMemFis].vpn = vpn;
+		}else if(valida){
+			// Pasar del PT al TLB
+			copiarATLB(vpn, iter);
+			iter = ++iter % 4;
 		}else{
-			cout << "no Pertenece a datos" <<endl;
-			if(!valida && !sucia){
-						ubcMemFis = memoryMap->Find();
-						if (ubcMemFis == -1){
-							buscarVictima(vpn);
-						}else{
-							pageTable[vpn].physicalPage = ubcMemFis;
-							pageTable[vpn].virtualPage = vpn;
-							pageTable[vpn].valid = true;
-							pageTable[vpn].use = true;
-							pageTable[vpn].dirty = false;
-							pageTable[vpn].readOnly = false;
-							copiarATLB(vpn , iter);
-							iter = ++iter % 4;
-							ipt[ubcMemFis].vpn = ubcMemFis;
-							ipt[ubcMemFis].veces++;
-						}
-			}else if((valida && !sucia) || (valida && sucia)){
-							copiarATLB(vpn , iter);
-							ipt[pageTable[vpn].physicalPage].veces++;
-							iter = ++iter % 4;
-			} else if(!valida && sucia){
-							cout << "Caso SWAP"<<endl;
-							int campoViejo = pageTable[vpn].physicalPage;
-							ubcMemFis = memoryMap->Find();
-							if(-1 == ubcMemFis){
-								buscarVictima(vpn);
-							}else{
-							pageTable[vpn].physicalPage = ubcMemFis;
-							pageTable[vpn].virtualPage = vpn;
-							pageTable[vpn].valid = true;
-							pageTable[vpn].use = true;
-							pageTable[vpn].dirty = true;
-							pageTable[vpn].readOnly = false;
-							copiarATLB(vpn , iter);
-							iter = ++iter % 4;
-							Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, campoViejo*PageSize);
-							swapMap->Clear(campoViejo);
-							ipt[ubcMemFis].vpn = ubcMemFis;
-							ipt[ubcMemFis].veces++;
-						}
+			// Pasar del SWAP a MEM y al TLB
+			int campoViejo = pageTable[vpn].physicalPage;
+			ubcMemFis = memoryMap->Find();
+			if(-1 == ubcMemFis){
+				ubcMemFis = buscarVictima(vpn);
+				if(pageTable[machine->tlb[iter].virtualPage].dirty){
+					int campo = swapMap->Find();
+					Swap->WriteAt(&(machine->mainMemory[(pageTable[iter].physicalPage)]), PageSize, campo*PageSize);
+					memoryMap->Clear(machine->tlb[iter].physicalPage);
+					pageTable[machine->tlb[iter].virtualPage].physicalPage = campo;
+					pageTable[machine->tlb[iter].virtualPage].valid = false;
+				}
 			}
+			pageTable[vpn].physicalPage = ubcMemFis;
+			pageTable[vpn].virtualPage = vpn;
+		    pageTable[vpn].valid = true;
+			pageTable[vpn].use = true;
+			pageTable[vpn].dirty = true;
+			pageTable[vpn].readOnly = false;
+			copiarATLB(vpn , iter);
+			iter = ++iter % 4;
+			Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, campoViejo*PageSize);
+			swapMap->Clear(campoViejo);
+			ipt[ubcMemFis].vpn = vpn;
 		}
-
+	}else{
+		cout << "Datos NO Inicializados" << endl;
+		if(!valida && !sucia){
+			// Cargar al TLB
+			ubcMemFis = memoryMap->Find();
+			if(-1 == ubcMemFis){
+				ubcMemFis = buscarVictima(vpn);
+				if(pageTable[machine->tlb[iter].virtualPage].dirty){
+					int campo = swapMap->Find();
+					Swap->WriteAt(&(machine->mainMemory[(pageTable[iter].physicalPage)]), PageSize, campo*PageSize);
+					memoryMap->Clear(machine->tlb[iter].physicalPage);
+					pageTable[machine->tlb[iter].virtualPage].physicalPage = campo;
+					pageTable[machine->tlb[iter].virtualPage].valid = false;
+				}
+			}
+			pageTable[vpn].physicalPage = ubcMemFis;
+			pageTable[vpn].virtualPage = vpn;
+			pageTable[vpn].valid = true;
+			pageTable[vpn].use = true;
+			pageTable[vpn].dirty = false;
+			pageTable[vpn].readOnly = false;
+			copiarATLB(vpn , iter);
+			iter = ++iter % 4;
+			ipt[ubcMemFis].vpn = vpn;
+		}else if(valida){
+			// Pasar del PT al TLB
+			copiarATLB(vpn, iter);
+			iter = ++iter % 4;
+		}else{
+			// Pasar del SWAP a MEM y al TLB
+			int campoViejo = pageTable[vpn].physicalPage;
+			ubcMemFis = memoryMap->Find();
+			if(-1 == ubcMemFis){
+				ubcMemFis = buscarVictima(vpn);
+				if(pageTable[machine->tlb[iter].virtualPage].dirty){
+					int campo = swapMap->Find();
+					Swap->WriteAt(&(machine->mainMemory[(pageTable[iter].physicalPage)]), PageSize, campo*PageSize);
+					memoryMap->Clear(machine->tlb[iter].physicalPage);
+					pageTable[machine->tlb[iter].virtualPage].physicalPage = campo;
+					pageTable[machine->tlb[iter].virtualPage].valid = false;
+				}
+			}
+			pageTable[vpn].physicalPage = ubcMemFis;
+			pageTable[vpn].virtualPage = vpn;
+			pageTable[vpn].valid = true;
+			pageTable[vpn].use = true;
+			pageTable[vpn].dirty = true;
+			pageTable[vpn].readOnly = false;
+			copiarATLB(vpn , iter);
+			iter = ++iter % 4;
+			Swap->ReadAt(&(machine->mainMemory[(pageTable[vpn].physicalPage)*128]), PageSize, campoViejo*PageSize);
+			swapMap->Clear(campoViejo);
+			ipt[ubcMemFis].vpn = vpn;
+		}
+	}
 }
 
 void AddrSpace::copiarATLB(int indPagT, int indTLB){
-			machine->tlb[indTLB].virtualPage = pageTable[indPagT].virtualPage;	// for now, virtual page # = phys page #
+			machine->tlb[indTLB].virtualPage = pageTable[indPagT].virtualPage;
 			machine->tlb[indTLB].physicalPage = pageTable[indPagT].physicalPage;
 			machine->tlb[indTLB].valid = pageTable[indPagT].valid;
 			machine->tlb[indTLB].use = pageTable[indPagT].use;
@@ -413,17 +422,18 @@ void AddrSpace::copiarATLB(int indPagT, int indTLB){
 			machine->tlb[indTLB].readOnly = pageTable[indPagT].readOnly;
 }
 
-void AddrSpace::buscarVictima(int vpn){
-
-	cout << "lol " << endl;
-			OpenFile *executable = fileSystem->Open(ejecutable);
-			int menor = 0;
-			for(int i = 1; i < 32 ; i++){
-					if(ipt[i].veces < ipt[menor].veces){
-						menor = i;
-					}
-			}
-
-cout << "Remplazo "<< menor << endl;
-
+int AddrSpace::buscarVictima(int vpn){
+	bool listo = false;
+	int victima = -1;
+	while(!listo)
+	for(int i = 1; i < 32 ; i++){
+		if(!pageTable[ipt[i].vpn].use){
+			victima = pageTable[ipt[i].vpn].physicalPage;
+			listo = true;
+			break;
+		}else{
+			pageTable[ipt[i].vpn].use = false;
+		}
+	}
+	return victima;
 }
